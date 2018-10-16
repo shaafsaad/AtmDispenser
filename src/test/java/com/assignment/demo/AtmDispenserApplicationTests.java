@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import com.assignment.exception.ATMException;
 import com.assignment.service.AuthService;
 import com.assignment.service.WithdrawService;
 
@@ -25,7 +26,7 @@ import com.assignment.service.WithdrawService;
 public class AtmDispenserApplicationTests {
 	
 	private MockMvc mockMvc;
-	int[] test = {320,90,130,150,80,10,95,550};
+	int[] test = {320,90,130,150,80,500};
 	
 	@MockBean
 	AuthService authService;
@@ -45,51 +46,34 @@ public class AtmDispenserApplicationTests {
 	
 	@Test
 	public void withdraw() throws Exception {
-		
-		
 		for (int i=0; i < test.length; i++) {
 		mockMvc.perform(MockMvcRequestBuilders.put("/user/withdraw/" + test[i]).accept(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.success").value(true)).andDo(print());
+			.andExpect(jsonPath("$.success").value(Boolean.TRUE)).andDo(print());
 		}
 	}
 	
 	@Test
-	public void withdrawSuccess() throws Exception {
-		mockMvc.perform(MockMvcRequestBuilders.put("/user/withdraw/320").accept(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.success").value(true)).andDo(print());
+	public void invalidAmount10() throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders.put("/user/withdraw/10").accept(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.success").value(Boolean.FALSE)).andDo(print());
 	}
 	
 	@Test
-	public void withdrawSuccessAgain() throws Exception {
-		mockMvc.perform(MockMvcRequestBuilders.put("/user/withdraw/90").accept(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.success").value(true)).andDo(print());
+	public void invalidAmount95() throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders.put("/user/withdraw/95").accept(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.success").value(Boolean.FALSE)).andDo(print());
 	}
 	
 	@Test
 	public void maxWithdrawLimit() throws Exception {
-		mockMvc.perform(MockMvcRequestBuilders.put("/user/withdraw/600").accept(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.success").value(false)).andDo(print());
+		mockMvc.perform(MockMvcRequestBuilders.put("/user/withdraw/550").accept(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.success").value(Boolean.FALSE)).andDo(print());
 	}
 	
 	@Test
 	public void invalidAmount() throws Exception {
-		mockMvc.perform(MockMvcRequestBuilders.put("/user/withdraw/95").accept(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.success").value(false)).andDo(print());
+		mockMvc.perform(MockMvcRequestBuilders.put("/user/withdraw/0").accept(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.success").value(Boolean.FALSE)).andDo(print());
 	}
-	
-	@Test
-	public void notEnoughCashInATM() throws Exception {
-		mockMvc.perform(MockMvcRequestBuilders.put("/user/withdraw/450").accept(MediaType.APPLICATION_JSON))
-			.andExpect(jsonPath("$.success").value(false)).andDo(print());
-	}
-	
-/*	@Test(expected = ATMException.class)
-	public void whenConfigNonVoidRetunMethodToThrowEx_thenExIsThrown() {
-	    MyDictionary dictMock = mock(MyDictionary.class);
-	    when(dictMock.getMeaning(anyString()))
-	      .thenThrow(NullPointerException.class);
-	 
-	    dictMock.getMeaning("word");
-	}*/
 
 }

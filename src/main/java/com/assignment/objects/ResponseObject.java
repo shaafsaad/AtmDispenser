@@ -7,11 +7,11 @@ package com.assignment.objects;
  */
 public class ResponseObject {
 	
-	boolean success;
-	int[] denomination;
-	int[] quantity;
-	int[] dispensedNotes;
-	int balanceLeftInATM;
+	private boolean success;
+	private int[] denomination;
+	private int[] quantity;
+	private int[] dispensedNotes;
+	private int balanceLeftInATM;
 	private String dispensedCurrencyString;
 	private int withdrawAmount;
 	private String errorMessage;

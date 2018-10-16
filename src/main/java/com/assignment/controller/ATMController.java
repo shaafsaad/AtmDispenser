@@ -27,7 +27,6 @@ public class ATMController {
 		ResponseObject response = new ResponseObject();
 		try {
 			response = withdrawService.withdrawAmount(withdrawAmount);
-			response.setSuccess(Boolean.TRUE);
 		} catch (Exception e) {
 			logger.debug(e.getMessage());
 			response.setSuccess(Boolean.FALSE);

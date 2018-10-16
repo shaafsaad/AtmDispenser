@@ -38,11 +38,12 @@ public class WithdrawService {
 	 * used int as it's faster in processing than Integer
 	 */
 	int[] denominations = { 20, 50, 500 };
-	int[] quantity = { 10, 10, 10 };
+	int[] quantity = { 20, 20, 1 };
 	private int[] leastNotesCombination;
 
 	public ResponseObject withdrawAmount(int withdrawAmount) throws ATMException {
 		ResponseObject response = new ResponseObject();
+		response.setSuccess(Boolean.TRUE);
 		if (authService.isUserAuthorize()) {
 			try {
 				if (withdrawAmount > ATMConstants.MAX_AMOUNT_TO_WITHDRAW) {
@@ -50,8 +51,14 @@ public class WithdrawService {
 					response.setSuccess(Boolean.FALSE);
 					response.setErrorMessage(ATMConstants.MAX_WITHDRAWL_AMOUNT_LIMIT_EXCEEDED);
 				} else {
-					response.setDispensedNotes(quantitiesOfDenominations(withdrawAmount, response));
-					response.setDispensedCurrencyString(ATMUtil.transformResponse(response));
+					if (!isValidwithdrawAmount(withdrawAmount)) {
+						logger.warn(ATMConstants.INVALID_AMOUNT);
+						response.setSuccess(Boolean.FALSE);
+						response.setErrorMessage(ATMConstants.INVALID_AMOUNT);
+					} else {
+						quantitiesOfDenominations(withdrawAmount, response);
+						response.setDispensedCurrencyString(ATMUtil.transformResponse(response));
+					}
 				}
 			} catch(Exception e) {
 				throw new ATMException(ErrorCode.ERROR_OCCURED);
@@ -69,9 +76,8 @@ public class WithdrawService {
 	 * @param response
 	 * @return
 	 */
-	private int[] quantitiesOfDenominations(int withdrawAmount, ResponseObject response) {
-		
-		if (isATMhasSufficientBalance(withdrawAmount) && isValidwithdrawAmount(withdrawAmount)) {
+	private ResponseObject quantitiesOfDenominations(int withdrawAmount, ResponseObject response) {
+		if (isATMhasSufficientBalance(withdrawAmount)) {
 			leastNotesCombination = null; 
 			solutions(denominations, quantity, new int[denominations.length], withdrawAmount, 0);
 			if (leastNotesCombination != null && leastNotesCombination.length > 0) {
@@ -80,6 +86,7 @@ public class WithdrawService {
 				response.setQuantity(quantity);
 				userService.updateUserBalance(withdrawAmount);
 				response.setDispensedCurrencyString(ATMUtil.transformResponse(response));
+				response.setDispensedNotes(leastNotesCombination);
 			} else {
 				logger.warn(ATMConstants.ENTER_VALID_AMOUNT);
 				response.setSuccess(Boolean.FALSE);
@@ -90,7 +97,7 @@ public class WithdrawService {
 			response.setSuccess(Boolean.FALSE);
 			response.setErrorMessage(ATMConstants.NOT_ENOUGH_CASH);
 		}
-		return leastNotesCombination;
+		return response;
 	}
 
 	/**
@@ -173,8 +180,9 @@ public class WithdrawService {
 		logger.info("Calculating balance amount left in ATM");
 		int balance = 0;
 		for (int i = 0; i < denominations.length; i++) {
-			balance = balance + denominations[i] * quantity[i];
-			logger.info(ATMConstants.CURRENY_SYMBOL, "{}", denominations[i], "{}", " x {}", quantity[i]);
+			if (quantity[i] > 0) {
+				balance = balance + denominations[i] * quantity[i];
+			}
 		}
 		logger.info("Total balance in ATM $ {}", balance);
 		return balance;
@@ -186,7 +194,7 @@ public class WithdrawService {
 	 * @return
 	 */
 	private boolean isValidwithdrawAmount(int withdrawAmount) {
-		return withdrawAmount > 0;
+		return withdrawAmount > ATMConstants.LOWEST_DENOMINATION;
 	}
 
 	/**

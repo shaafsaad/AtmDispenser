@@ -11,4 +11,5 @@ public final class ATMConstants {
 	public static final String MAX_WITHDRAWL_AMOUNT_LIMIT_EXCEEDED  = "Maximum withdrawal limit per transaction is " + CURRENY_SYMBOL + MAX_AMOUNT_TO_WITHDRAW;
 	public static final String ENTER_VALID_AMOUNT = "ATM cannot dispense this Amount, Please choose another Amount";
 	public static final String NOT_ENOUGH_CASH = "Sorry not enough cash";
+	public static final String INVALID_AMOUNT = "Please enter valid amount";
 }
